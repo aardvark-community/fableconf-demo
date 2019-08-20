@@ -1,4 +1,4 @@
-open __PROJECT_NAME__
+open ElmSpheres
 
 open Aardium
 open Aardvark.Service

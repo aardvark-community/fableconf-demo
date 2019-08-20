@@ -1,4 +1,4 @@
-namespace __PROJECT_NAME__.Model
+namespace ElmSpheres.Model
 
 open System
 open Aardvark.Base
