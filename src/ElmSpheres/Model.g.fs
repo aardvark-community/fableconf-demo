@@ -14,8 +14,10 @@ module Mutable =
         inherit obj()
         let mutable __current : Aardvark.Base.Incremental.IModRef<ElmSpheres.Model.Model> = Aardvark.Base.Incremental.EqModRef<ElmSpheres.Model.Model>(__initial) :> Aardvark.Base.Incremental.IModRef<ElmSpheres.Model.Model>
         let _cameraState = Aardvark.UI.Primitives.Mutable.MCameraControllerState.Create(__initial.cameraState)
+        let _spheres = MList.Create(__initial.spheres)
         
         member x.cameraState = _cameraState
+        member x.spheres = _spheres :> alist<_>
         
         member x.Current = __current :> IMod<_>
         member x.Update(v : ElmSpheres.Model.Model) =
@@ -23,6 +25,7 @@ module Mutable =
                 __current.Value <- v
                 
                 Aardvark.UI.Primitives.Mutable.MCameraControllerState.Update(_cameraState, v.cameraState)
+                MList.Update(_spheres, v.spheres)
                 
         
         static member Create(__initial : ElmSpheres.Model.Model) : MModel = MModel(__initial)
@@ -44,4 +47,10 @@ module Mutable =
                     override x.Get(r) = r.cameraState
                     override x.Set(r,v) = { r with cameraState = v }
                     override x.Update(r,f) = { r with cameraState = f r.cameraState }
+                }
+            let spheres =
+                { new Lens<ElmSpheres.Model.Model, Aardvark.Base.plist<Aardvark.Base.V3d>>() with
+                    override x.Get(r) = r.spheres
+                    override x.Set(r,v) = { r with spheres = v }
+                    override x.Update(r,f) = { r with spheres = f r.spheres }
                 }

@@ -14,4 +14,5 @@ type Primitive =
 type Model =
     {
         cameraState     : CameraControllerState
+        spheres         : plist<V3d>
     }
