@@ -13,10 +13,8 @@ module Mutable =
     type MModel(__initial : ElmSpheres.Model.Model) =
         inherit obj()
         let mutable __current : Aardvark.Base.Incremental.IModRef<ElmSpheres.Model.Model> = Aardvark.Base.Incremental.EqModRef<ElmSpheres.Model.Model>(__initial) :> Aardvark.Base.Incremental.IModRef<ElmSpheres.Model.Model>
-        let _currentModel = ResetMod.Create(__initial.currentModel)
         let _cameraState = Aardvark.UI.Primitives.Mutable.MCameraControllerState.Create(__initial.cameraState)
         
-        member x.currentModel = _currentModel :> IMod<_>
         member x.cameraState = _cameraState
         
         member x.Current = __current :> IMod<_>
@@ -24,7 +22,6 @@ module Mutable =
             if not (System.Object.ReferenceEquals(__current.Value, v)) then
                 __current.Value <- v
                 
-                ResetMod.Update(_currentModel,v.currentModel)
                 Aardvark.UI.Primitives.Mutable.MCameraControllerState.Update(_cameraState, v.cameraState)
                 
         
@@ -42,12 +39,6 @@ module Mutable =
     module Model =
         [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
         module Lens =
-            let currentModel =
-                { new Lens<ElmSpheres.Model.Model, ElmSpheres.Model.Primitive>() with
-                    override x.Get(r) = r.currentModel
-                    override x.Set(r,v) = { r with currentModel = v }
-                    override x.Update(r,f) = { r with currentModel = f r.currentModel }
-                }
             let cameraState =
                 { new Lens<ElmSpheres.Model.Model, Aardvark.UI.Primitives.CameraControllerState>() with
                     override x.Get(r) = r.cameraState

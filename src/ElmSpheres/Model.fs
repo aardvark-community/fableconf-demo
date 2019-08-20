@@ -13,6 +13,5 @@ type Primitive =
 [<DomainType>]
 type Model =
     {
-        currentModel    : Primitive
         cameraState     : CameraControllerState
     }
