@@ -15,4 +15,5 @@ type Model =
     {
         cameraState     : CameraControllerState
         spheres         : plist<V3d>
+        selected        : option<string>
     }
