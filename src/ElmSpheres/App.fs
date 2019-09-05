@@ -14,22 +14,35 @@ open ElmSpheres.Model
 type Message =
     | CameraMessage of FreeFlyController.Message
     | AddSphere     of V3d
-    | Select        of string
+    | Redo 
+    | Undo
 
 module App =
     
-    let initial = { cameraState = FreeFlyController.initial; spheres = PList.empty; selected = None }
+    let initial = 
+        { 
+            cameraState = FreeFlyController.initial; 
+            spheres = PList.empty 
+            past = None
+            future = None
+
+        }
 
     let update (m : Model) (msg : Message) =
         match msg with
         | CameraMessage msg ->
             { m with cameraState = FreeFlyController.update m.cameraState msg }
         | AddSphere p ->
-            let m = { m with spheres = m.spheres |> PList.prepend p }
-            Log.line "we have %d spheres" (m.spheres |> PList.count)
-            m
-        | Select id -> 
-            { m with selected = Some id}
+           { m with spheres = m.spheres |> PList.prepend p; past = Some m }
+        | Undo ->
+          match m.past with
+          | Some p -> { p with future = Some m }
+          | None -> m
+        | Redo ->
+          match m.future with
+          | Some f -> { f with past = Some m }
+          | None -> m
+          
 
     let view (m : MModel) =
 
@@ -47,39 +60,31 @@ module App =
                 do! DefaultSurfaces.simpleLighting
             }
             |> Sg.withEvents [
-                Sg.onClick (fun p -> AddSphere p)
+                Sg.onClick(fun p -> AddSphere p)
             ]
 
-        let color sphereId = 
-            m.selected 
-            |> Mod.map(fun x ->
-                match x with
-                | Some id -> 
-                    if sphereId = id then 
-                        C4b.Blue 
-                    else 
-                        C4b.Red
-                | None -> C4b.Red)
-
-        let smallSpheres =
-            m.spheres 
-            |> AList.toASet 
-            |> ASet.map(fun (x) ->
-                Sg.sphere 5 (color (x.ToString())) (Mod.constant 0.15)
+        let littleSpheres =
+            m.spheres
+            |> AList.toASet
+            |> ASet.map(fun x ->
+                Sg.sphere 5 (Mod.constant C4b.Red) (Mod.constant 0.15)
                 |> Sg.fillMode (Mod.constant FillMode.Fill)
                 |> Sg.requirePicking
                 |> Sg.noEvents
                 |> Sg.shader {
                     do! DefaultSurfaces.trafo
-                    do! DefaultSurfaces.simpleLighting                
+                    do! DefaultSurfaces.simpleLighting
                 }
                 |> Sg.trafo (x |> Trafo3d.Translation |> Mod.constant)
-                |> Sg.withEvents [
-                    Sg.onEnter (fun _ -> Select (x.ToString()))
-                    Sg.onLeave (fun _ -> Select "")
-                ]
+            )
+            |> Sg.set
 
-            ) |> Sg.set
+        //let color sphereId = 
+        //    m.selected 
+        //    |> Mod.map(fun x ->
+        //        match x with
+        //        | Some id -> if sphereId = id then C4b.Blue else C4b.Red
+        //        | None -> C4b.Red)
 
 
         let icon = i [clazz "circle white middle aligned icon"][]
@@ -102,11 +107,11 @@ module App =
         let att = [ style "position: fixed; left: 0; top: 0; width: 100%; height: 100%" ]
         require (Html.semui) (
             body [clazz "ui"] [
-                FreeFlyController.controlledControl m.cameraState CameraMessage frustum (AttributeMap.ofList att) (Sg.ofList [sg; smallSpheres])                
+                FreeFlyController.controlledControl m.cameraState CameraMessage frustum (AttributeMap.ofList att) ([sg; littleSpheres] |> Sg.ofList)               
                 div [clazz "ui inverted segment"; style "position: fixed; right: 20px; top: 20px;"] [
                     div [clazz "inverted ui buttons"][
-                        button [clazz "ui button"][text "Undo"]
-                        button [clazz "ui button"][text "Redo"]
+                        button [clazz "ui button"; onClick (fun _ -> Undo)][text "Undo"]
+                        button [clazz "ui button"; onClick (fun _ -> Redo)][text "Redo"]
                     ]
                     sphereList
                 ]

@@ -15,11 +15,11 @@ module Mutable =
         let mutable __current : Aardvark.Base.Incremental.IModRef<ElmSpheres.Model.Model> = Aardvark.Base.Incremental.EqModRef<ElmSpheres.Model.Model>(__initial) :> Aardvark.Base.Incremental.IModRef<ElmSpheres.Model.Model>
         let _cameraState = Aardvark.UI.Primitives.Mutable.MCameraControllerState.Create(__initial.cameraState)
         let _spheres = MList.Create(__initial.spheres)
-        let _selected = MOption.Create(__initial.selected)
         
         member x.cameraState = _cameraState
         member x.spheres = _spheres :> alist<_>
-        member x.selected = _selected :> IMod<_>
+        member x.past = __current.Value.past
+        member x.future = __current.Value.future
         
         member x.Current = __current :> IMod<_>
         member x.Update(v : ElmSpheres.Model.Model) =
@@ -28,7 +28,6 @@ module Mutable =
                 
                 Aardvark.UI.Primitives.Mutable.MCameraControllerState.Update(_cameraState, v.cameraState)
                 MList.Update(_spheres, v.spheres)
-                MOption.Update(_selected, v.selected)
                 
         
         static member Create(__initial : ElmSpheres.Model.Model) : MModel = MModel(__initial)
@@ -57,9 +56,15 @@ module Mutable =
                     override x.Set(r,v) = { r with spheres = v }
                     override x.Update(r,f) = { r with spheres = f r.spheres }
                 }
-            let selected =
-                { new Lens<ElmSpheres.Model.Model, Microsoft.FSharp.Core.Option<System.String>>() with
-                    override x.Get(r) = r.selected
-                    override x.Set(r,v) = { r with selected = v }
-                    override x.Update(r,f) = { r with selected = f r.selected }
+            let past =
+                { new Lens<ElmSpheres.Model.Model, Microsoft.FSharp.Core.Option<ElmSpheres.Model.Model>>() with
+                    override x.Get(r) = r.past
+                    override x.Set(r,v) = { r with past = v }
+                    override x.Update(r,f) = { r with past = f r.past }
+                }
+            let future =
+                { new Lens<ElmSpheres.Model.Model, Microsoft.FSharp.Core.Option<ElmSpheres.Model.Model>>() with
+                    override x.Get(r) = r.future
+                    override x.Set(r,v) = { r with future = v }
+                    override x.Update(r,f) = { r with future = f r.future }
                 }
