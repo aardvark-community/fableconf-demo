@@ -52,7 +52,7 @@ module App =
 
         let sg =
             Sg.sphere 5 (Mod.constant C4b.Green) (Mod.constant 2.0)
-            |> Sg.fillMode (Mod.constant FillMode.Line)
+            |> Sg.fillMode (Mod.constant FillMode.Fill)
             |> Sg.requirePicking
             |> Sg.noEvents
             |> Sg.shader {
@@ -79,13 +79,6 @@ module App =
             )
             |> Sg.set
 
-        //let color sphereId = 
-        //    m.selected 
-        //    |> Mod.map(fun x ->
-        //        match x with
-        //        | Some id -> if sphereId = id then C4b.Blue else C4b.Red
-        //        | None -> C4b.Red)
-
 
         let icon = i [clazz "circle white middle aligned icon"][]
         let sphereList =
@@ -94,20 +87,24 @@ module App =
                 (
                     alist {
                         for s in m.spheres do
-                            yield div [clazz "item"] [
-                                icon
-                                div[clazz "content"] [
-                                    div[clazz "header"; ][text "Sphere"]
-                                    div[clazz "description"][text (s.ToString("0.000"))]
+                            yield 
+                                div [clazz "item"] [
+                                    icon
+                                    div[clazz "content"] [
+                                        div[clazz "header"; ][text "Sphere"]
+                                        div[clazz "description"][text (s.ToString("0.000"))]
+                                    ]
                                 ]
-                            ]
                     }
                 )
 
-        let att = [ style "position: fixed; left: 0; top: 0; width: 100%; height: 100%" ]
+        let attributes = AttributeMap.ofList [ style "position: fixed; left: 0; top: 0; width: 100%; height: 100%" ]
         require (Html.semui) (
             body [clazz "ui"] [
-                FreeFlyController.controlledControl m.cameraState CameraMessage frustum (AttributeMap.ofList att) ([sg; littleSpheres] |> Sg.ofList)               
+                FreeFlyController.controlledControl m.cameraState CameraMessage frustum attributes (
+                    [sg; littleSpheres] |> Sg.ofList
+                )               
+                
                 div [clazz "ui inverted segment"; style "position: fixed; right: 20px; top: 20px;"] [
                     div [clazz "inverted ui buttons"][
                         button [clazz "ui button"; onClick (fun _ -> Undo)][text "Undo"]
