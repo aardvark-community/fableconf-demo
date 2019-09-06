@@ -34,17 +34,11 @@ module App =
             { m with cameraState = FreeFlyController.update m.cameraState msg }
         | AddSphere p ->
            { m with spheres = m.spheres |> PList.prepend p; past = Some m }
-        | Undo ->
-          match m.past with
-          | Some p -> { p with future = Some m }
-          | None -> m
-        | Redo ->
-          match m.future with
-          | Some f -> { f with past = Some m }
-          | None -> m
+
           
 
     let view (m : MModel) =
+        let icon = i [clazz "circle white middle aligned icon"][]
 
         let frustum = 
             Frustum.perspective 60.0 0.1 100.0 1.0 
@@ -59,9 +53,7 @@ module App =
                 do! DefaultSurfaces.trafo
                 do! DefaultSurfaces.simpleLighting
             }
-            |> Sg.withEvents [
-                Sg.onClick(fun p -> AddSphere p)
-            ]
+
 
         let littleSpheres =
             m.spheres
@@ -80,22 +72,11 @@ module App =
             |> Sg.set
 
 
-        let icon = i [clazz "circle white middle aligned icon"][]
         let sphereList =
             Incremental.div
                 ([clazz "ui divided list inverted"] |> AttributeMap.ofList)
                 (
-                    alist {
-                        for s in m.spheres do
-                            yield 
-                                div [clazz "item"] [
-                                    icon
-                                    div[clazz "content"] [
-                                        div[clazz "header"; ][text "Sphere"]
-                                        div[clazz "description"][text (s.ToString("0.000"))]
-                                    ]
-                                ]
-                    }
+                    AList.empty
                 )
 
         let attributes = AttributeMap.ofList [ style "position: fixed; left: 0; top: 0; width: 100%; height: 100%" ]
@@ -106,10 +87,6 @@ module App =
                 )               
                 
                 div [clazz "ui inverted segment"; style "position: fixed; right: 20px; top: 20px;"] [
-                    div [clazz "inverted ui buttons"][
-                        button [clazz "ui button"; onClick (fun _ -> Undo)][text "Undo"]
-                        button [clazz "ui button"; onClick (fun _ -> Redo)][text "Redo"]
-                    ]
                     sphereList
                 ]
             ]
