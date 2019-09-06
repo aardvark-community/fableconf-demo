@@ -14,8 +14,6 @@ open ElmSpheres.Model
 type Message =
     | CameraMessage of FreeFlyController.Message
     | AddSphere     of V3d
-    | Redo 
-    | Undo
 
 module App =
     
@@ -33,7 +31,9 @@ module App =
         | CameraMessage msg ->
             { m with cameraState = FreeFlyController.update m.cameraState msg }
         | AddSphere p ->
-           { m with spheres = m.spheres |> PList.prepend p; past = Some m }
+           { m with 
+                spheres = m.spheres |> PList.prepend p; 
+            }
 
           
 
@@ -52,7 +52,10 @@ module App =
             |> Sg.shader {
                 do! DefaultSurfaces.trafo
                 do! DefaultSurfaces.simpleLighting
-            }
+            } 
+            |> Sg.withEvents [
+                Sg.onClick(fun p -> AddSphere p)
+            ]
 
 
         let littleSpheres =
@@ -76,7 +79,17 @@ module App =
             Incremental.div
                 ([clazz "ui divided list inverted"] |> AttributeMap.ofList)
                 (
-                    AList.empty
+                    alist {
+                        for s in m.spheres do
+                            yield 
+                                div [clazz "item"] [
+                                    icon
+                                    div[clazz "content"] [
+                                        div[clazz "header"; ][text "Sphere"]
+                                        div[clazz "description"][text (s.ToString("0.000"))]
+                                    ]
+                                ]
+                    }
                 )
 
         let attributes = AttributeMap.ofList [ style "position: fixed; left: 0; top: 0; width: 100%; height: 100%" ]
